@@ -62,7 +62,7 @@
       
       var game = this;
       var gameContent = $('#gameContent');
-      var gameContentHeight =  gameContent.css('height').substring(0,gameContent.css('height').length-2); 
+      var gameContentHeight =  parseInt(gameContent.css('height')); 
 
       var cubeSkin = {
         'position':'absolute',
@@ -70,39 +70,38 @@
         'height':'50px',
         'background':'black'
       };
+      var cubeHeight = parseInt(cubeSkin['height']);
+      var cubeWidth = parseInt(cubeSkin['width']);
 
-      var limit = parseInt(gameContentHeight-cubeSkin['width'].substring(0,cubeSkin['width'].length-2)); //畫面最低點
-      var cubeHeight = parseInt(cubeSkin['height'].substring(0,cubeSkin['height'].length-2));
+      var limit = gameContentHeight - parseInt(cubeSkin['height']); //畫面最低點
 
-      var player = document.getElementById("player");
+      var player = $('#player');
       var player_start_left = 180; //玩家起始點
+      var playerWidth = parseInt(player.css('width'));
 
-      var aisle = 7; //幾個掉落通道
+      
       var cubeSpacing = 60;  //每個方塊間距
       var success_level = 30; //第幾關過關
 
-      var min_row_cubes = 3; //每行最少掉落幾塊
-      var max_row_cubes = 5; //每行最多掉落幾塊
+      var aisle = 7; //幾個掉落通道
+      var min_row_cubes = 5; //每行最少掉落幾塊
+      var max_row_cubes = 3; //每行最多掉落幾塊
+
+      game.speed = 50; //越小越快
+      game.playerSpeed = 30; //移動速度(範圍)
 
       game.box = [];
       game.round = 0; //level
 
       game.status = false; //遊戲中
       game.life = false; //活命
-
-      game.speed = 50; //掉落速度
-      game.playerSpeed = 20; //移動速度
-
-      game.checkHit = true; //無敵
+      game.checkHit = true; //是否會被擊中
       
       var create = function(i){ 
           let cube = document.createElement("div");
           let id = 'cube'+(game.round)+(i);
  
-          for(key in cubeSkin){
-              $(cube).css(key,cubeSkin[key]);
-          }
-
+          $(cube).css(cubeSkin);
           $(cube).css('left', i*cubeSpacing + 'px');
           $(cube).prop('id',id);
           $(cube).attr('onclick','stopCube("'+id+'")');
@@ -113,36 +112,31 @@
       }
 
       var down = function(cube){
-          let top = $(cube).css('top');
-          let left = $(cube).css('left');
-          top = top.substring(0,top.length-2);
-          left = left.substring(0,left.length-2);
+          let top = parseInt($(cube).css('top'));
+          let left = parseInt($(cube).css('left'));
 
-          top = (top*1)+10;
+          top = top + 10;
           if(top > limit){
-             $(cube).fadeOut("100", function() {
-                 $(cube).remove();
+            $(cube).fadeOut("100", function() {
+                $(cube).remove();
             });
             return;
           }
-          $(cube).css('top',top+'px');
+          $(cube).css('top', top+'px');
 
           if(game.checkHit == true){
             cubeHit(top,left);
           }
       }
 
-      var cubeHit = function(top,left){
-          let playerLeft = player.style.left;
-          let playerHeight = player.style.height;
+      var cubeHit = function(nowTop, nowLeft){
+          let playerLeft = parseInt(player.css('left'));
+          let playerHeight = parseInt(player.css('height'));
 
-          playerLeft = playerLeft.substring(0,playerLeft.length-2);
-          playerHeight = playerHeight.substring(0,playerHeight.length-2);
-
-          let leftHit = Math.abs(left-playerLeft);
+          let leftHit = Math.abs(nowLeft-playerLeft);
           let topHit = (limit-playerHeight);
 
-          if(top-playerHeight+cubeHeight >= topHit && (leftHit < cubeSpacing)){
+          if(nowTop-playerHeight+cubeHeight >= topHit && (leftHit < cubeSpacing)){
               stopGame();
               game.life = false;
               $('#gameContent').append('<div style="color:red;font-size:20pt">GG..</div>');
@@ -150,7 +144,7 @@
       }
 
       var randAisle = function(count){
-          let arr = new Array(aisle);
+          let arr = [];
           for(let i = 0; i < aisle ; i++){
               arr[i] = i;
           }
@@ -165,28 +159,24 @@
       }
 
       var playerMove = function(){
-          player.style.height = '50px';
-          player.style.left = player_start_left+'px';
-          document.onkeydown = function(ev){
-             var ev = ev || event;
-             var keyCode = ev.keyCode;
-             switch(keyCode){
-                case 37: {
-                  if(player.offsetLeft-game.playerSpeed < 0){
+          $(window).keydown(function(event){
+             let playerLeft = player.position().left;
+             switch(event.keyCode) {
+                case 37:
+                    if(playerLeft - game.playerSpeed < 0){
+                      break;
+                    }
+                    player.css('left',playerLeft - game.playerSpeed+"px");
                     break;
-                  }
-                  player.style.left = player.offsetLeft-game.playerSpeed+"px";
-                  break;
-                }
-                case 39: {
-                  if(player.offsetLeft+game.playerSpeed > (cubeSpacing*(aisle-1))){
-                    break;
-                  }
-                  player.style.left = player.offsetLeft+game.playerSpeed+"px";
-                  break;
-                }
+                break;
+                case 39:
+                    if(playerLeft + game.playerSpeed > (cubeSpacing*aisle)-10-playerWidth ){
+                      break;
+                    }
+                    player.css('left',playerLeft + game.playerSpeed+"px");
+                break;
              }
-         }
+         });
       }
      
       game.default = function(){
@@ -231,14 +221,25 @@
           });
       }
 
-      playerMove();
+      game.init = function(){
+        let width = aisle * cubeSpacing - 10;
+        gameContent.css('width',width+'px'); //設定遊戲畫面寬度
+
+        player.css('height','50px');  //設定玩家高度
+        player.css('left', player_start_left+'px'); //設定玩家起始點
+        playerMove();
+      }
+      
+      game.init();
 
   }
 
 
-  var play;
+  
 
   var player = new game();
+  var speed = 1; //每x秒產生一次方塊
+  var play;
 
   function startGame(){
       if(player.status === true){
@@ -248,7 +249,7 @@
 
       play = setInterval(function () {
         player.default();
-      }, 1500);
+      }, speed*1000);
       
       player.life = true;
       player.status = true;
@@ -270,7 +271,7 @@
   }
 
   function continueGame(){
-      if(player.status === false && player.life !== false){
+      if(player.status === false && player.life !== false){ //如果為暫停中 並且還活著
         player.continue();
         startGame();
       }else{
