@@ -28,7 +28,6 @@
 
       #player{
         position: absolute;
-        width: 50px;
         background: pink;
         bottom: 0;
         z-index: 99;
@@ -68,27 +67,32 @@
         'position':'absolute',
         'width':'50px',
         'height':'50px',
-        'background':'black'
+        'background':'black',
+        'color':'white'
       };
       var cubeHeight = parseInt(cubeSkin['height']);
       var cubeWidth = parseInt(cubeSkin['width']);
 
+      var playerSkin = {
+        'width':'50px',
+        'height':'50px'
+      }
       var player = $('#player');
-      var player_start_left = 180; //玩家起始點
-      var playerWidth = parseInt(player.css('width'));
+      var player_start_left = 0; //玩家起始點
+      var playerWidth = parseInt(playerSkin['width']);
+      var playerHeight = parseInt(playerSkin['height']);
 
-      player.css('height','50px');  //設定玩家高度
-      var topHit = gameContentHeight - parseInt(player.css('height')); //會碰到玩家的高度
+      var topHit = gameContentHeight - playerHeight; //會碰到玩家的高度
 
-      var cubeSpacing = 60;  //每個方塊間距
+      var cubeSpacing = 10;  //每個方塊間距
       var success_level = 30; //第幾關過關
 
       var aisle = 7; //幾個掉落通道
       var min_row_cubes = 5; //每行最少掉落幾塊
       var max_row_cubes = 3; //每行最多掉落幾塊
 
-      game.speed = 50; //越小越快
-      game.playerSpeed = 30; //移動速度(範圍)
+      game.speed = 50; //降落速度 越小越快
+      game.playerSpeed = 60; //移動速度(範圍)
 
       game.box = [];
       game.round = 0; //level
@@ -102,7 +106,7 @@
           let id = 'cube'+(game.round)+(i);
  
           $(cube).css(cubeSkin);
-          $(cube).css('left', i*cubeSpacing + 'px');
+          $(cube).css('left', i*(cubeWidth+cubeSpacing) + 'px');
           $(cube).prop('id',id);
           $(cube).attr('onclick','stopCube("'+id+'")');
 
@@ -112,30 +116,34 @@
       }
 
       var down = function(cube){
-          let top = parseInt($(cube).css('top'));
-          let left = parseInt($(cube).css('left'));
+          let nowTop = parseInt($(cube).css('top'));
+          let nowLeft = parseInt($(cube).css('left'));
 
-          top = top + 10;
-          if(top > topHit){
+          nowTop = nowTop + 10;
+          if(nowTop > topHit){
             $(cube).fadeOut("100", function() {
                 $(cube).remove();
             });
             return;
           }
-          $(cube).css('top', top+'px');
+          $(cube).css('top', nowTop+'px');
 
           if(game.checkHit == true){
-            cubeHit(top,left);
+            cubeHit(nowTop, nowLeft);
           }
       }
 
       var cubeHit = function(nowTop, nowLeft){
           let playerLeft = parseInt(player.css('left'));
-          let playerHeight = parseInt(player.css('height'));
 
-          let leftHit = Math.abs(nowLeft-playerLeft);
+          let leftHit = 0;
+          if(nowLeft - playerLeft < 0){
+            leftHit = nowLeft + cubeWidth - playerLeft;
+          }else{
+            leftHit = playerLeft + playerWidth - nowLeft;
+          }
 
-          if(nowTop+cubeHeight >= topHit && (leftHit < cubeSpacing)){
+          if(nowTop + cubeHeight >= topHit && leftHit > 0 ){
               stopGame();
               game.life = false;
               $('#gameContent').append('<div style="color:red;font-size:20pt">GG..</div>');
@@ -169,7 +177,7 @@
                     break;
                 break;
                 case 39:
-                    if(playerLeft + game.playerSpeed > (cubeSpacing*aisle)-10-playerWidth ){
+                    if(playerLeft + game.playerSpeed > ((cubeWidth+cubeSpacing)*aisle)-cubeSpacing-playerWidth){
                       break;
                     }
                     player.css('left',playerLeft + game.playerSpeed+"px");
@@ -221,9 +229,11 @@
       }
 
       game.init = function(){
-        let width = aisle * cubeSpacing - 10;
+        let width = aisle * (cubeWidth+cubeSpacing) - cubeSpacing;
         gameContent.css('width',width+'px'); //設定遊戲畫面寬度
 
+        player_start_left = (width/2) - (playerWidth/2);
+        player.css(playerSkin);
         player.css('left', player_start_left+'px'); //設定玩家起始點
         playerMove();
       }
