@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ajax</title>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <style type="text/css">
+      .content{
+          position: relative;
+          margin: 40px auto;
+          height: 600px;
+          text-align: center;
+
+      }
+
+      #gameContent{
+        position: absolute;
+        width: 410px;
+        height: 450px;
+        background: gray;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin:0px auto;
+        text-align: center;
+      }
+
+      #player{
+        position: absolute;
+        width: 50px;
+        background: pink;
+        bottom: 0;
+        z-index: 99;
+      }
+
+      #level{
+        margin-top: 10px;
+        height: 20px;
+        font-size: 16pt;
+        display: block;
+      }
+
+    </style>
+</head>
+<body style="text-align: center;">
+  <button onclick="startGame()">start</button>
+  <button onclick="stopGame()">stop</button>
+  <button onclick="continueGame()">continue</button>
+  <button onclick="restart()">restart</button>
+  <div id="level"></div>
+  <div class="content">
+    <div id="gameContent" >
+        <div id="player"></div>
+    </div>
+  </div>
+</body>
+</html>
+<script type="text/javascript">
+
+  var game = function(){
+      
+      var game = this;
+      var gameContent = $('#gameContent');
+      var gameContentHeight =  gameContent.css('height').substring(0,gameContent.css('height').length-2); 
+
+      var cubeSkin = {
+        'position':'absolute',
+        'width':'50px',
+        'height':'50px',
+        'background':'black'
+      };
+
+      var limit = parseInt(gameContentHeight-cubeSkin['width'].substring(0,cubeSkin['width'].length-2)); //畫面最低點
+      var cubeHeight = parseInt(cubeSkin['height'].substring(0,cubeSkin['height'].length-2));
+
+      var player = document.getElementById("player");
+      var player_start_left = 180; //玩家起始點
+
+      var aisle = 7; //幾個掉落通道
+      var cubeSpacing = 60;  //每個方塊間距
+      var success_level = 30; //第幾關過關
+
+      var min_row_cubes = 3; //每行最少掉落幾塊
+      var max_row_cubes = 5; //每行最多掉落幾塊
+
+      game.box = [];
+      game.round = 0; //level
+
+      game.status = false; //遊戲中
+      game.life = false; //活命
+
+      game.speed = 50; //掉落速度
+      game.playerSpeed = 20; //移動速度
+
+      game.checkHit = true; //無敵
+      
+      var create = function(i){ 
+          let cube = document.createElement("div");
+          let id = 'cube'+(game.round)+(i);
+ 
+          for(key in cubeSkin){
+              $(cube).css(key,cubeSkin[key]);
+          }
+
+          $(cube).css('left', i*cubeSpacing + 'px');
+          $(cube).prop('id',id);
+          $(cube).attr('onclick','stopCube("'+id+'")');
+
+          gameContent.append(cube);
+
+          return cube;
+      }
+
+      var down = function(cube){
+          let top = $(cube).css('top');
+          let left = $(cube).css('left');
+          top = top.substring(0,top.length-2);
+          left = left.substring(0,left.length-2);
+
+          top = (top*1)+10;
+          if(top > limit){
+             $(cube).fadeOut("100", function() {
+                 $(cube).remove();
+            });
+            return;
+          }
+          $(cube).css('top',top+'px');
+
+          if(game.checkHit == true){
+            cubeHit(top,left);
+          }
+      }
+
+      var cubeHit = function(top,left){
+          let playerLeft = player.style.left;
+          let playerHeight = player.style.height;
+
+          playerLeft = playerLeft.substring(0,playerLeft.length-2);
+          playerHeight = playerHeight.substring(0,playerHeight.length-2);
+
+          let leftHit = Math.abs(left-playerLeft);
+          let topHit = (limit-playerHeight);
+
+          if(top-playerHeight+cubeHeight >= topHit && (leftHit < cubeSpacing)){
+              stopGame();
+              game.life = false;
+              $('#gameContent').append('<div style="color:red;font-size:20pt">GG..</div>');
+          }
+      }
+
+      var randAisle = function(count){
+          let arr = new Array(aisle);
+          for(let i = 0; i < aisle ; i++){
+              arr[i] = i;
+          }
+
+          let out = [];
+          for(let i = 0; i < count; i++){
+              let idx = parseInt(Math.random()*arr.length);
+              out.push(arr[idx]);
+              arr.splice(idx,1);    
+          }
+          return out;
+      }
+
+      var playerMove = function(){
+          player.style.height = '50px';
+          player.style.left = player_start_left+'px';
+          document.onkeydown = function(ev){
+             var ev = ev || event;
+             var keyCode = ev.keyCode;
+             switch(keyCode){
+                case 37: {
+                  if(player.offsetLeft-game.playerSpeed < 0){
+                    break;
+                  }
+                  player.style.left = player.offsetLeft-game.playerSpeed+"px";
+                  break;
+                }
+                case 39: {
+                  if(player.offsetLeft+game.playerSpeed > (cubeSpacing*(aisle-1))){
+                    break;
+                  }
+                  player.style.left = player.offsetLeft+game.playerSpeed+"px";
+                  break;
+                }
+             }
+         }
+      }
+     
+      game.default = function(){
+          let count = Math.floor(Math.random() * (max_row_cubes - min_row_cubes + 1)) + min_row_cubes;   //一行產生幾個方塊
+          let num = randAisle( count ); //每個方塊出現在第幾個通道
+
+          game.round++;
+          $('#level').text('level:'+game.round);
+
+          if(game.round > success_level){
+              stopGame();
+              game.checkHit = false;
+              game.life = false;
+              $('#gameContent').append('<div style="color:red;font-size:20pt">Win..</div>');
+          }
+          
+          for(let i = 0; i < num.length; i++){
+            let cube =  create(num[i]);
+            let id = $(cube).prop('id');  
+            game.box[id] =  setInterval(function () {
+              down(cube);
+            }, game.speed);
+          }
+      }
+
+      game.stop = function(id){
+        if(typeof id != 'undefined'){
+            clearInterval(game.box[id]);
+        }else{
+          for(cube in game.box){
+            clearInterval(game.box[cube]);
+          }
+        }
+      }
+
+      game.continue = function(){
+          $.each( gameContent.find('div').not('#player'), function( key, value ) {
+              let id = $(value).prop('id');
+              game.box[id] =  setInterval(function () {
+                down(value);
+              }, game.speed);
+          });
+      }
+
+      playerMove();
+
+  }
+
+
+  var play;
+
+  var player = new game();
+
+  function startGame(){
+      if(player.status === true){
+        console.log('starting..')
+        return;
+      }
+
+      play = setInterval(function () {
+        player.default();
+      }, 1500);
+      
+      player.life = true;
+      player.status = true;
+  }
+
+  function stopGame(){
+      if(player.status === true){
+        player.stop();
+        clearInterval(play);
+        player.status = false;
+      }else{
+        console.log('stopping..');
+        return;
+      }
+  }
+
+  function stopCube(id){
+      player.stop(id);
+  }
+
+  function continueGame(){
+      if(player.status === false && player.life !== false){
+        player.continue();
+        startGame();
+      }else{
+        console.log('???');
+        return;
+      }
+  }
+
+  function restart(){
+      stopGame();
+      $('#gameContent').find('div').not('#player').remove();
+      $('#level').text('level:0');
+      player = new game();
+      startGame();
+  }
+    
+
+</script>
