@@ -73,13 +73,13 @@
       var cubeHeight = parseInt(cubeSkin['height']);
       var cubeWidth = parseInt(cubeSkin['width']);
 
-      var limit = gameContentHeight - parseInt(cubeSkin['height']); //畫面最低點
-
       var player = $('#player');
       var player_start_left = 180; //玩家起始點
       var playerWidth = parseInt(player.css('width'));
 
-      
+      player.css('height','50px');  //設定玩家高度
+      var topHit = gameContentHeight - parseInt(player.css('height')); //會碰到玩家的高度
+
       var cubeSpacing = 60;  //每個方塊間距
       var success_level = 30; //第幾關過關
 
@@ -116,7 +116,7 @@
           let left = parseInt($(cube).css('left'));
 
           top = top + 10;
-          if(top > limit){
+          if(top > topHit){
             $(cube).fadeOut("100", function() {
                 $(cube).remove();
             });
@@ -134,9 +134,8 @@
           let playerHeight = parseInt(player.css('height'));
 
           let leftHit = Math.abs(nowLeft-playerLeft);
-          let topHit = (limit-playerHeight);
 
-          if(nowTop-playerHeight+cubeHeight >= topHit && (leftHit < cubeSpacing)){
+          if(nowTop+cubeHeight >= topHit && (leftHit < cubeSpacing)){
               stopGame();
               game.life = false;
               $('#gameContent').append('<div style="color:red;font-size:20pt">GG..</div>');
@@ -225,7 +224,6 @@
         let width = aisle * cubeSpacing - 10;
         gameContent.css('width',width+'px'); //設定遊戲畫面寬度
 
-        player.css('height','50px');  //設定玩家高度
         player.css('left', player_start_left+'px'); //設定玩家起始點
         playerMove();
       }
