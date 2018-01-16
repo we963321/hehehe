@@ -16,15 +16,15 @@
         position: absolute;
         width: 410px;
         height: 450px;
-        //background: gray;
+        background: gray;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
         margin:0px auto;
         text-align: center;
-        background-image: url("alice.png");
-        background-size: cover;
+        //background-image: url("alice.png");
+        //background-size: cover;
       }
 
       #player{
@@ -68,7 +68,8 @@
         'position':'absolute',
         'width':'50px',
         'height':'50px',
-        'background-image':'url("shit.png")',
+        'background':'black',
+        //'background-image':'url("shit.png")',
         'background-size':'cover',
         'color':'white'
       };
@@ -78,12 +79,12 @@
       var playerSkin = {
         'width':'50px',
         'height':'50px',
-        'background-image':'url("cat.png")',
+        'background':'white',
+        //'background-image':'url("cat.png")',
         'background-size':'cover',
         'bottom':'3px'
       }
       var player = $('#player');
-      var player_start_left = 0; //玩家起始點
       var playerWidth = parseInt(playerSkin['width']);
       var playerHeight = parseInt(playerSkin['height']);
 
@@ -96,12 +97,14 @@
       var min_row_cubes = 5; //每行最少掉落幾塊
       var max_row_cubes = 3; //每行最多掉落幾塊
 
-      game.speed = 50; //降落速度 越小越快
+      const gameSpeed = 50;
+
+      game.speed = gameSpeed; //降落速度 越小越快
       game.playerSpeed = 60; //移動速度(範圍)
 
       game.box = [];
       game.round = 0; //level
-
+      game.player_start_left = 0; //玩家起始點
       game.status = false; //遊戲中
       game.life = false; //活命
       game.checkHit = true; //是否會被擊中
@@ -171,24 +174,25 @@
       }
 
       var playerMove = function(){
-          $(window).keydown(function(event){
-             let playerLeft = player.position().left;
-             switch(event.keyCode) {
-                case 37:
-                    if(playerLeft - game.playerSpeed < 0){
-                      break;
-                    }
-                    player.css('left',playerLeft - game.playerSpeed+"px");
-                    break;
+        document.onkeydown = function(ev){
+          let keyCode = ev.keyCode;
+          let playerLeft = player.position().left;
+          switch(keyCode) {
+            case 37:
+                if(playerLeft - game.playerSpeed < 0){
+                  break;
+                }
+                player.css('left',playerLeft - game.playerSpeed+"px");
                 break;
-                case 39:
-                    if(playerLeft + game.playerSpeed > ((cubeWidth+cubeSpacing)*aisle)-cubeSpacing-playerWidth){
-                      break;
-                    }
-                    player.css('left',playerLeft + game.playerSpeed+"px");
-                break;
-             }
-         });
+            break;
+            case 39:
+                if(playerLeft + game.playerSpeed > ((cubeWidth+cubeSpacing)*aisle)-cubeSpacing-playerWidth){
+                  break;
+                }
+                player.css('left',playerLeft + game.playerSpeed+"px");
+            break;
+          }
+        }
       }
      
       game.default = function(){
@@ -197,6 +201,8 @@
 
           game.round++;
           $('#level').text('level:'+game.round);
+
+          //game.difficult();
 
           if(game.round > success_level){
               stopGame();
@@ -215,13 +221,13 @@
       }
 
       game.stop = function(id){
-        if(typeof id != 'undefined'){
-            clearInterval(game.box[id]);
-        }else{
-          for(cube in game.box){
-            clearInterval(game.box[cube]);
+          if(typeof id != 'undefined'){
+              clearInterval(game.box[id]);
+          }else{
+            for(cube in game.box){
+              clearInterval(game.box[cube]);
+            }
           }
-        }
       }
 
       game.continue = function(){
@@ -233,18 +239,30 @@
           });
       }
 
-      game.init = function(){
-        let width = aisle * (cubeWidth+cubeSpacing) - cubeSpacing;
-        gameContent.css('width',width+'px'); //設定遊戲畫面寬度
+      game.difficult = function(){
+          if(game.round % 5 == 0){
+              game.speed -= 5;
+          }
+      }
 
-        player_start_left = (width/2) - (playerWidth/2);
-        player.css(playerSkin);
-        player.css('left', player_start_left+'px'); //設定玩家起始點
-        playerMove();
+      game.reset = function(){
+          game.round = 0;
+          game.speed = gameSpeed;
+          player.css('left', game.player_start_left+'px');
+      }
+
+      game.init = function(){
+          let width = aisle * (cubeWidth+cubeSpacing) - cubeSpacing;
+          gameContent.css('width',width+'px'); //設定遊戲畫面寬度
+
+          game.player_start_left = (width/2) - (playerWidth/2);
+          player.css(playerSkin);
+          player.css('left', game.player_start_left+'px'); //設定玩家起始點
+
+          playerMove();
       }
       
       game.init();
-
   }
 
 
@@ -297,7 +315,7 @@
       stopGame();
       $('#gameContent').find('div').not('#player').remove();
       $('#level').text('level:0');
-      player = new game();
+      player.reset();
       startGame();
   }
     
