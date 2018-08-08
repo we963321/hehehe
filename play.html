@@ -23,8 +23,8 @@
         bottom: 0;
         margin:0px auto;
         text-align: center;
-        //background-image: url("alice.png");
-        //background-size: cover;
+        background-image: url("alice.png");
+        background-size: cover;
       }
 
       #player{
@@ -44,6 +44,7 @@
     </style>
 </head>
 <body style="text-align: center;">
+  <h1>瑪麗貓閃大便</h1>
   <button onclick="startGame()">start</button>
   <button onclick="stopGame()">stop</button>
   <button onclick="continueGame()">continue</button>
@@ -68,8 +69,8 @@
         'position':'absolute',
         'width':'50px',
         'height':'50px',
-        'background':'black',
-        //'background-image':'url("shit.png")',
+        //'background':'black',
+        'background-image':'url("shit.png")',
         'background-size':'cover',
         'color':'white'
       };
@@ -79,8 +80,8 @@
       var playerSkin = {
         'width':'50px',
         'height':'50px',
-        'background':'white',
-        //'background-image':'url("cat.png")',
+        //'background':'white',
+        'background-image':'url("cat.png")',
         'background-size':'cover',
         'bottom':'3px'
       }
@@ -91,11 +92,11 @@
       var topHit = gameContentHeight - playerHeight; //會碰到玩家的高度
 
       var cubeSpacing = 10;  //每個方塊間距
-      var success_level = 30; //第幾關過關
+      var success_level = 87; //第幾關過關
 
       var aisle = 13; //幾個掉落通道
-      var min_row_cubes = 5; //每行最少掉落幾塊
-      var max_row_cubes = 3; //每行最多掉落幾塊
+      var min_row_cubes = 6; //每行最少掉落幾塊
+      var max_row_cubes = 10; //每行最多掉落幾塊
 
       const gameSpeed = 50;
 
@@ -127,7 +128,7 @@
           let nowTop = parseInt($(cube).css('top'));
           let nowLeft = parseInt($(cube).css('left'));
 
-          nowTop = nowTop + 10;
+          nowTop = nowTop + 15;
           if(nowTop > topHit){
             $(cube).fadeOut("100", function() {
                 $(cube).remove();
@@ -154,7 +155,7 @@
           if(nowTop + cubeHeight >= topHit && leftHit > 0 ){
               stopGame();
               game.life = false;
-              $('#gameContent').append('<div style="color:red;font-size:20pt">GG..</div>');
+              $('#gameContent').append('<div style="color:red;font-size:40pt;position:relative;top: calc(50% - 20px);">GG..</div>');
           }
       }
 
@@ -208,7 +209,7 @@
               stopGame();
               game.checkHit = false;
               game.life = false;
-              $('#gameContent').append('<div style="color:red;font-size:20pt">Win..</div>');
+              $('#gameContent').append('<div style="color:red;font-size:40pt;position:relative;top: calc(50% - 20px)">0487</div>');
           }
           
           for(let i = 0; i < num.length; i++){
@@ -240,7 +241,7 @@
       }
 
       game.difficult = function(){
-          if(game.round % 5 == 0){
+          if(game.round % 10 == 0){
               game.speed -= 5;
           }
       }
@@ -269,7 +270,7 @@
   
 
   var player = new game();
-  var speed = 1; //每x秒產生一次方塊
+  var speed = 0.7; //每x秒產生一次方塊
   var play;
 
   function startGame(){
