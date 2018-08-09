@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>vue</title>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+    <style type="text/css">
+    	#coin1{
+    		display: inline-block;
+    		width: 140px;
+    		height: 100px;
+    		background-image: url("./1.jpg");
+    		background-size: 140px 100px;
+    	}
+    	#coin2{
+    		display: inline-block;
+    		width: 140px;
+    		height: 100px;
+    		background-image: url("./2.jpg");
+    		background-size: 140px 100px;
+    	}
+
+    	#go{
+    		position: absolute;
+    		right: :20%;
+    		top:200px;
+    	}
+    </style>
+</head>
+<body style="text-align:center">
+
+	<h2 id="content">聖杯次數:0</h2>
+
+
+	<div id="coin1"></div>
+	<div id="coin2"></div>
+
+	<button id="go">骰下去</button>
+	
+	<script type="text/javascript">
+
+		var times = 0;
+
+		var record = [];
+
+		$('#go').on('click', function(){
+			$('div').each(function(key,item){
+
+				var rand = Math.floor(Math.random()*2)+1;
+
+				record[key] = rand;
+
+				$(item).animate(
+					{'marginTop':300},
+					{'duration':1500}
+				).fadeOut(900,function(){
+					$(this).attr('id', 'coin'+rand).show()
+				}).show(function(){
+					var e = this;
+						
+					setTimeout(function(){ 
+						$(e).css('marginTop',0);
+
+						if(key == 1){	
+							if(record[0] != record[1]){
+								times = times + 1;
+								$('#content').text('聖杯次數:'+times);
+
+								if(times == 3){
+									$('body').append('<span>2018</span>')
+								}
+
+							}else{
+								times = 0;
+								$('#content').text('聖杯次數:'+times);
+							}
+						}
+
+					}, 2000);
+				});
+
+			});
+		});
+	</script>
+</body>
+</html>
